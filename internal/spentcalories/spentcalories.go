@@ -2,6 +2,8 @@ package spentcalories
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -46,26 +48,56 @@ func distance(steps int, height float64) float64 {
 }
 
 func meanSpeed(steps int, height float64, duration time.Duration) float64 {
-if duration <= 0 {
-	return 0
-}
-midSpeed := distance(steps, height) / duration.Hours()
-return midSpeed
+	if duration <= 0 {
+		return 0
+	}
+	midSpeed := distance(steps, height) / duration.Hours()
+	return midSpeed
 }
 
 func TrainingInfo(data string, weight, height float64) (string, error) {
+	steps, activity, duration, err := parseTraining(data)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	switch activity {
+	case "Бег":
+		calories, err := RunningSpentCalories(steps, weight, height, duration)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", activity, duration.Hours(), distance(steps, height), meanSpeed(steps, height, duration), calories), nil
+
+	case "Ходьба":
+		calories, err := WalkingSpentCalories(steps, weight, height, duration)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", activity, duration.Hours(), distance(steps, height), meanSpeed(steps, height, duration), calories), nil
+
+	default:
+		return "", errors.New("неизвестный тип тренировки")
+	}
 }
 
 func RunningSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
-if steps <= 0 || weight <= 0 || height <= 0 || duration <= 0 {
-	return 0, errors.New("неверные входные данные")
+	if steps <= 0 || weight <= 0 || height <= 0 || duration <= 0 {
+		return 0, errors.New("неверные входные данные")
 	}
-midSpeed := meanSpeed(steps, height, duration)
-durationInMinutes := duration.Minutes()
-calories := (weight * midSpeed * durationInMinutes) / minInH
-return calories, nil
+	midSpeed := meanSpeed(steps, height, duration)
+	durationInMinutes := duration.Minutes()
+	calories := (weight * midSpeed * durationInMinutes) / minInH
+	return calories, nil
 }
 
 func WalkingSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
-
+	if steps <= 0 || weight <= 0 || height <= 0 || duration <= 0 {
+		return 0, errors.New("неверные входные данные")
+	}
+	midSpeed := meanSpeed(steps, height, duration)
+	durationInMinutes := duration.Minutes()
+	calories := (weight * midSpeed * durationInMinutes) / minInH
+	caloriesGot := calories * walkingCaloriesCoefficient
+	return caloriesGot, nil
 }
