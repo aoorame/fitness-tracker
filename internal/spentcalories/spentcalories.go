@@ -1,6 +1,9 @@
 package spentcalories
 
 import (
+	"errors"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -14,25 +17,55 @@ const (
 )
 
 func parseTraining(data string) (int, string, time.Duration, error) {
-	// TODO: реализовать функцию
+	parts := strings.Split(data, ",")
+	if len(parts) != 3 {
+		return 0, "", 0, errors.New("неверный формат входных данных")
+	}
+	steps, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, "", 0, err
+	}
+	if steps <= 0 {
+		return 0, "", 0, errors.New("количество шагов должно быть больше нуля")
+	}
+	duration, err := time.ParseDuration(parts[2])
+	if err != nil {
+		return 0, "", 0, err
+	}
+	if duration <= 0 {
+		return 0, "", 0, errors.New("время должно быть больше нуля")
+	}
+	return steps, parts[1], duration, nil
 }
 
 func distance(steps int, height float64) float64 {
-	// TODO: реализовать функцию
+	stepLen := height * stepLengthCoefficient
+	distanceMeters := float64(steps) * stepLen
+	distanceKM := distanceMeters / mInKm
+	return distanceKM
 }
 
 func meanSpeed(steps int, height float64, duration time.Duration) float64 {
-	// TODO: реализовать функцию
+if duration <= 0 {
+	return 0
+}
+midSpeed := distance(steps, height) / duration.Hours()
+return midSpeed
 }
 
 func TrainingInfo(data string, weight, height float64) (string, error) {
-	// TODO: реализовать функцию
 }
 
 func RunningSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
-	// TODO: реализовать функцию
+if steps <= 0 || weight <= 0 || height <= 0 || duration <= 0 {
+	return 0, errors.New("неверные входные данные")
+	}
+midSpeed := meanSpeed(steps, height, duration)
+durationInMinutes := duration.Minutes()
+calories := (weight * midSpeed * durationInMinutes) / minInH
+return calories, nil
 }
 
 func WalkingSpentCalories(steps int, weight, height float64, duration time.Duration) (float64, error) {
-	// TODO: реализовать функцию
+
 }
