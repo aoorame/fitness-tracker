@@ -1,12 +1,15 @@
+// Package daysteps реализует учет активности в течение дня:
+// информация складывается из количества шагов, дистанции и потраченных калорий.
 package daysteps
 
 import (
 	"errors"
 	"fmt"
-	"github.com/Yandex-Practicum/tracker/internal/spentcalories"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Yandex-Practicum/tracker/internal/spentcalories"
 )
 
 const (
@@ -33,16 +36,18 @@ func parsePackage(data string) (int, time.Duration, error) {
 		return 0, 0, err
 	}
 	if duration <= 0 {
-		return 0, 0, errors.New("время должно быть больше нуля")
+		return 0, 0, errors.New("продолжительность должна быть больше нуля")
 	}
 	return steps, duration, nil
 }
 
+// DayActionInfo возвращает строку о количестве шагов, дистанции, потраченных калориях.
+// При неверных данных возвращается пустая строка,
+// При этом сообщение об ошибке печатается в консоль.
 func DayActionInfo(data string, weight, height float64) string {
-
 	steps, duration, err := parsePackage(data)
 	if err != nil {
-		fmt.Println("Ошибка парсинга данных:", err)
+		fmt.Println("Ошибка парсинга данных", err)
 		return ""
 	}
 	if steps <= 0 {
